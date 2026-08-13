@@ -220,7 +220,6 @@ export default function Command() {
                                     : Color.Green,
                               },
                             },
-                            { text: getProgressBar(conn.minPercent, 8) },
                             ...(conn.nearestReset ? [{ icon: Icon.Clock, text: conn.nearestReset, tooltip: "Reset Time" }] : []),
                           ]
                         : undefined
@@ -236,7 +235,7 @@ export default function Command() {
                               conn.quotas
                                 .map(
                                   (q) =>
-                                    `| **${q.shortLabel}** | ${getStatusIcon(q.remainingPercent)} \`${getProgressBar(q.remainingPercent, 6)}\` | ${q.used} / ${q.total} | ${q.remaining}${q.extra} | ${q.reset} |`
+                                    `| **${q.shortLabel}** | ${getStatusIcon(q.remainingPercent)} ${q.remainingPercent === null ? "-" : `${Math.round(q.remainingPercent)}%`} | ${q.used} / ${q.total} | ${q.remaining}${q.extra} | ${q.reset} |`
                                 )
                                 .join("\n")
                           )}
