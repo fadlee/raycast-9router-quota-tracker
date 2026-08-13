@@ -3,7 +3,7 @@
   "name": "9router-quota-tracker",
   "title": "9Router Quota Tracker",
   "description": "Track 9Router LLM provider account quotas and usages",
-  "icon": "assets/favicon.svg",
+  "icon": "assets/extension-icon.png",
   "author": "fadlee",
   "categories": [
     "Developer Tools",
