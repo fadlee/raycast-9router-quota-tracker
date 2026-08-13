@@ -16,6 +16,13 @@
       "title": "Track Quotas",
       "description": "View 9Router provider account quota details and usages",
       "mode": "view"
+    },
+    {
+      "name": "background",
+      "title": "Refresh Quota Cache",
+      "description": "Refresh cached 9Router quota data",
+      "mode": "no-view",
+      "interval": "5m"
     }
   ],
   "preferences": [
