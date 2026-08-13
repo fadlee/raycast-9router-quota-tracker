@@ -190,13 +190,20 @@ export default function Command() {
               {providerConnections.map((conn) => {
                 const title = getAccountName(conn as unknown as Record<string, unknown>);
                 const statusIcon = getStatusIcon(conn.minPercent);
+                const displayStatus = conn.disabled ? "Disabled" : conn.errorStatus ? "Error" : conn.status || "Active";
+                const statusColor =
+                  conn.disabled || conn.errorStatus
+                    ? Color.Red
+                    : displayStatus.toLowerCase() === "active"
+                    ? Color.Green
+                    : Color.Yellow;
 
                 const quotaSummaries = conn.quotas
                   .slice(0, 2)
                   .map((q) => `${q.shortLabel}: ${q.remaining}/${q.total}`)
                   .join("  •  ");
 
-                const subtitle = quotaSummaries || (conn.disabled ? "Disabled" : conn.status || "Active");
+                const subtitle = quotaSummaries || displayStatus;
                 return (
                   <List.Item
                     key={conn.id}
@@ -217,6 +224,12 @@ export default function Command() {
                                     : conn.minPercent <= 35
                                     ? Color.Yellow
                                     : Color.Green,
+                              },
+                            },
+                            {
+                              tag: {
+                                value: displayStatus,
+                                color: statusColor,
                               },
                             },
                             ...(conn.nearestReset ? [{ icon: Icon.Clock, text: conn.nearestReset, tooltip: "Reset Time" }] : []),
