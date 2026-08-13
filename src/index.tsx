@@ -7,6 +7,7 @@ import type { InstanceConfig } from "./config";
 import { InstanceManager } from "./InstanceManager";
 import { refreshInstance, refreshInstances } from "./instance-refresh";
 import { filterProviderGroups, groupConnectionsByProvider } from "./instance-groups";
+import { renderQuotaDetails } from "./quota-detail";
 
 interface InstanceQuotaState {
   instance: InstanceConfig;
@@ -135,7 +136,7 @@ export default function Command() {
                     { tag: { value: status, color: connection.isActive ? Color.Green : Color.SecondaryText } },
                     ...(connection.nearestReset ? [{ icon: Icon.Clock, text: connection.nearestReset, tooltip: "Reset Time" }] : []),
                   ]}
-                  detail={<List.Item.Detail markdown={`# ${title} (${connection.provider.toUpperCase()})\n\n${connection.errorMessage ? `> ⚠️ **Error:** ${connection.errorMessage}\n\n` : connection.quotas.length === 0 ? "*No quota data available*" : `| Quota | Status | Used / Total | Remaining | Reset |\n| --- | --- | --- | --- | --- |\n${connection.quotas.map((quota) => `| **${quota.shortLabel}** | ${getStatusIcon(quota.remainingPercent)} ${quota.remainingPercent === null ? "-" : `${Math.round(quota.remainingPercent)}%`} | ${quota.used} / ${quota.total} | ${quota.remaining}${quota.extra} | ${quota.reset} |`).join("\n")}`}`} metadata={<List.Item.Detail.Metadata><List.Item.Detail.Metadata.Label title="Instance" text={state.instance.name} /><List.Item.Detail.Metadata.Label title="Account ID" text={connection.id} /><List.Item.Detail.Metadata.Label title="Provider" text={connection.provider.toUpperCase()} /><List.Item.Detail.Metadata.Label title="Last Updated" text={formatLastUpdated(state.timestamp)} /></List.Item.Detail.Metadata>} />}
+                  detail={<List.Item.Detail markdown={renderQuotaDetails({ quotas: connection.quotas, errorMessage: connection.errorMessage })} metadata={<List.Item.Detail.Metadata><List.Item.Detail.Metadata.Label title="Instance" text={state.instance.name} /><List.Item.Detail.Metadata.Label title="Account ID" text={connection.id} /><List.Item.Detail.Metadata.Label title="Provider" text={connection.provider.toUpperCase()} /><List.Item.Detail.Metadata.Label title="Last Updated" text={formatLastUpdated(state.timestamp)} /></List.Item.Detail.Metadata>} />}
                   actions={<ActionPanel><Action title={isShowingDetail ? "Hide Details" : "Show Details"} icon={Icon.Sidebar} onAction={() => setIsShowingDetail((value) => !value)} /><Action title="Refresh This Instance" icon={Icon.ArrowClockwise} onAction={() => refreshOne(state.instance)} /><Action title="Refresh All Instances" icon={Icon.ArrowClockwise} shortcut={{ modifiers: ["cmd"], key: "r" }} onAction={() => refreshAll(true)} /><Action title="Open 9Router Dashboard" icon={Icon.Globe} shortcut={{ modifiers: ["cmd"], key: "o" }} onAction={() => open(state.instance.baseUrl)} /><Action.Push title="Manage Instances" icon={Icon.Gear} shortcut={{ modifiers: ["cmd", "shift"], key: "," }} target={<InstanceManager onChanged={refreshAfterConfiguration} />} /></ActionPanel>}
                 />
               );
