@@ -6,7 +6,7 @@ import { getCachedData, getInstances, setCachedData, setRefreshError } from "./c
 import type { InstanceConfig } from "./config";
 import { InstanceManager } from "./InstanceManager";
 import { refreshInstance, refreshInstances } from "./instance-refresh";
-import { groupConnectionsByProvider } from "./instance-groups";
+import { filterProviderGroups, groupConnectionsByProvider } from "./instance-groups";
 
 interface InstanceQuotaState {
   instance: InstanceConfig;
@@ -35,6 +35,7 @@ export default function Command() {
   const [quotaStates, setQuotaStates] = useState<InstanceQuotaState[]>([]);
   const [loading, setLoading] = useState(true);
   const [isShowingDetail, setIsShowingDetail] = useState(false);
+  const [searchText, setSearchText] = useState("");
 
   const loadCachedStates = useCallback(async (instances?: InstanceConfig[]) => {
     const configuredInstances = instances ?? await getInstances();
@@ -102,7 +103,7 @@ export default function Command() {
   }
 
   return (
-    <List isLoading={loading} isShowingDetail={isShowingDetail && quotaStates.some((state) => state.connections.length > 0)}>
+    <List isLoading={loading} isShowingDetail={isShowingDetail && quotaStates.some((state) => state.connections.length > 0)} filtering={false} onSearchTextChange={setSearchText}>
       {quotaStates.flatMap((state) => {
         if (state.connections.length === 0) {
           return (
@@ -117,7 +118,7 @@ export default function Command() {
           );
         }
 
-        return groupConnectionsByProvider(state.connections).map((group) => (
+        return filterProviderGroups(groupConnectionsByProvider(state.connections), searchText, state.instance.name).map((group) => (
           <List.Section key={`${state.instance.id}:${group.provider}`} title={`${state.instance.name} / ${group.provider}`} subtitle={`${group.connections.length} account${group.connections.length === 1 ? "" : "s"} • ${sectionSubtitle(state)}`}>
             {group.connections.map((connection) => {
               const title = getAccountName(connection as unknown as Record<string, unknown>);
