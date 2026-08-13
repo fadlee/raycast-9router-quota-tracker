@@ -191,7 +191,7 @@ export default function Command() {
                 const title = getAccountName(conn as unknown as Record<string, unknown>);
                 const statusIcon = getStatusIcon(conn.minPercent);
                 const displayStatus = getConnectionStatus(conn);
-                const statusColor = displayStatus === "Active" ? Color.Green : Color.Red;
+                const statusColor = conn.isActive ? Color.Green : Color.SecondaryText;
 
                 const quotaSummaries = conn.quotas
                   .slice(0, 2)
@@ -202,7 +202,7 @@ export default function Command() {
                 return (
                   <List.Item
                     key={conn.id}
-                    icon={{ source: statusIcon }}
+                    icon={conn.isActive ? { source: statusIcon } : { source: Icon.Circle, tintColor: Color.SecondaryText }}
                     title={title}
                     subtitle={!isShowingDetail ? subtitle : undefined}
                     accessories={
@@ -212,7 +212,7 @@ export default function Command() {
                               tag: {
                                 value: conn.minPercent !== null ? `${Math.round(conn.minPercent)}%` : "-",
                                 color:
-                                  conn.minPercent === null
+                                  !conn.isActive || conn.minPercent === null
                                     ? Color.SecondaryText
                                     : conn.minPercent <= 10
                                     ? Color.Red
