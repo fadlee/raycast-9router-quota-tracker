@@ -17,9 +17,7 @@ export interface Connection {
   accountLabel?: string;
   email?: string;
   provider: string;
-  disabled?: boolean;
-  errorStatus?: string;
-  status?: string;
+  isActive: boolean;
   quotas: QuotaItem[];
   errorMessage?: string;
   minPercent: number | null;
@@ -137,6 +135,10 @@ export function getAccountName(conn: Record<string, unknown>): string {
     (conn.id as string) ||
     "unknown-account"
   );
+}
+
+export function getConnectionStatus(connection: { isActive?: unknown }): "Active" | "Inactive" {
+  return connection.isActive === false ? "Inactive" : "Active";
 }
 
 export async function fetch9RouterData(baseUrl: string, password: string, providerFilter = "all"): Promise<TrackerData> {
@@ -263,9 +265,7 @@ export async function fetch9RouterData(baseUrl: string, password: string, provid
       accountLabel: conn.accountLabel as string,
       email: conn.email as string,
       provider,
-      disabled: Boolean(conn.disabled),
-      errorStatus: conn.errorStatus as string,
-      status: conn.status as string,
+      isActive: conn.isActive !== false,
       quotas,
       errorMessage,
       minPercent,

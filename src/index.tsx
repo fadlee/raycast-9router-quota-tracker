@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { List, ActionPanel, Action, Icon, Color, open, showToast, Toast } from "@raycast/api";
 import { getConfig, getCachedData, setCachedData, Config } from "./config";
-import { fetch9RouterData, Connection, TrackerData, getStatusIcon, getProgressBar, getAccountName } from "./api";
+import { fetch9RouterData, Connection, TrackerData, getConnectionStatus, getStatusIcon, getProgressBar, getAccountName } from "./api";
 import { ConfigForm } from "./ConfigForm";
 
 function formatLastUpdated(timestamp: number | null): string {
@@ -190,13 +190,8 @@ export default function Command() {
               {providerConnections.map((conn) => {
                 const title = getAccountName(conn as unknown as Record<string, unknown>);
                 const statusIcon = getStatusIcon(conn.minPercent);
-                const displayStatus = conn.disabled ? "Disabled" : conn.errorStatus ? "Error" : conn.status || "Active";
-                const statusColor =
-                  conn.disabled || conn.errorStatus
-                    ? Color.Red
-                    : displayStatus.toLowerCase() === "active"
-                    ? Color.Green
-                    : Color.Yellow;
+                const displayStatus = getConnectionStatus(conn);
+                const statusColor = displayStatus === "Active" ? Color.Green : Color.Red;
 
                 const quotaSummaries = conn.quotas
                   .slice(0, 2)
@@ -257,8 +252,8 @@ export default function Command() {
                             <List.Item.Detail.Metadata.Label title="Provider" text={conn.provider.toUpperCase()} />
                             <List.Item.Detail.Metadata.TagList title="Status">
                               <List.Item.Detail.Metadata.TagList.Item
-                                text={conn.disabled ? "Disabled" : conn.errorStatus ? "Error" : "Active"}
-                                color={conn.disabled || conn.errorStatus ? Color.Red : Color.Green}
+                                text={getConnectionStatus(conn)}
+                                color={conn.isActive ? Color.Green : Color.Red}
                               />
                             </List.Item.Detail.Metadata.TagList>
                             {conn.nearestReset && (
