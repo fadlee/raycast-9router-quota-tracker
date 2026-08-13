@@ -1,39 +1,35 @@
 import { expect, test } from "bun:test";
-import { refreshQuotaCache } from "./quota-cache";
+import { refreshInstance } from "./instance-refresh";
 
-const config = {
-  baseUrl: "https://router.example",
-  password: "secret",
-  providerFilter: "all",
-};
+const instance = { id: "personal", name: "Personal", baseUrl: "https://router.example", password: "secret", providerFilter: "all" };
 
-test("fetches quota data and updates the shared cache", async () => {
-  const data = { connections: [], providers: [] };
-  const fetchedWith: unknown[][] = [];
-  const cached: unknown[] = [];
+test("clears a previous refresh error when an instance refresh succeeds", async () => {
+  const errors: Array<[string, string | null]> = [];
 
-  await refreshQuotaCache(config, async (value) => {
-    cached.push(value);
-    return Date.now();
-  }, async (...args) => {
-    fetchedWith.push(args);
-    return data;
+  const succeeded = await refreshInstance(instance, {
+    fetchData: async () => ({ connections: [], providers: [] }),
+    setCachedData: async () => Date.now(),
+    setRefreshError: async (instanceId, error) => errors.push([instanceId, error]),
   });
 
-  expect(fetchedWith).toEqual([[config.baseUrl, config.password, config.providerFilter]]);
-  expect(cached).toEqual([data]);
+  expect(succeeded).toBeTrue();
+  expect(errors).toEqual([["personal", null]]);
 });
 
-test("does not request or overwrite cache without a complete configuration", async () => {
-  const called: string[] = [];
+test("records an error without overwriting a stale cache when refreshing fails", async () => {
+  const writes: string[] = [];
+  const errors: Array<[string, string | null]> = [];
 
-  await refreshQuotaCache({ ...config, password: "" }, async () => {
-    called.push("cache");
-    return Date.now();
-  }, async () => {
-    called.push("fetch");
-    return { connections: [], providers: [] };
+  const succeeded = await refreshInstance(instance, {
+    fetchData: async () => { throw new Error("Unauthorized"); },
+    setCachedData: async () => {
+      writes.push("cache");
+      return Date.now();
+    },
+    setRefreshError: async (instanceId, error) => errors.push([instanceId, error]),
   });
 
-  expect(called).toEqual([]);
+  expect(succeeded).toBeFalse();
+  expect(writes).toEqual([]);
+  expect(errors).toEqual([["personal", "Unauthorized"]]);
 });

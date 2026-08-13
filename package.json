@@ -25,31 +25,6 @@
       "interval": "5m"
     }
   ],
-  "preferences": [
-    {
-      "name": "baseUrl",
-      "type": "textfield",
-      "required": false,
-      "title": "9Router Base URL",
-      "description": "Base URL of your 9Router instance (e.g. http://localhost:3000)",
-      "placeholder": "http://localhost:3000"
-    },
-    {
-      "name": "password",
-      "type": "password",
-      "required": false,
-      "title": "9Router Password",
-      "description": "Password for 9Router login"
-    },
-    {
-      "name": "providerFilter",
-      "type": "textfield",
-      "required": false,
-      "title": "Provider Filter",
-      "description": "Filter by provider name (e.g. antropic, openai, or 'all')",
-      "default": "all"
-    }
-  ],
   "dependencies": {
     "@raycast/api": "^1.79.0",
     "@raycast/utils": "^1.16.0",
