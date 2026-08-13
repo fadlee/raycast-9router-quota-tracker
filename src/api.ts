@@ -100,10 +100,11 @@ export function getStatusIcon(percent: number | null): string {
   return "🟢";
 }
 
-export function getProgressBar(percent: number | null, width = 8): string {
-  if (percent === null) return `[${"░".repeat(width)}]`;
-  const filled = Math.round((Math.max(0, Math.min(100, percent)) / 100) * width);
-  return `[${"█".repeat(filled)}${"░".repeat(width - filled)}]`;
+export function getProgressBar(percent: number | null, width = 10): string {
+  if (percent === null) return "░".repeat(width);
+  const clamped = Math.max(0, Math.min(100, percent));
+  const filled = Math.round((clamped / 100) * width);
+  return "█".repeat(filled) + "░".repeat(width - filled);
 }
 
 export function getAccountName(conn: Record<string, unknown>): string {

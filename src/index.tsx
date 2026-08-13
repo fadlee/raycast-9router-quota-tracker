@@ -207,8 +207,20 @@ export default function Command() {
                     accessories={
                       !isShowingDetail
                         ? [
-                            { text: conn.minPercent !== null ? `${Math.round(conn.minPercent)}%` : "-" },
-                            { text: getProgressBar(conn.minPercent, 6) },
+                            {
+                              tag: {
+                                value: conn.minPercent !== null ? `${Math.round(conn.minPercent)}%` : "-",
+                                color:
+                                  conn.minPercent === null
+                                    ? Color.SecondaryText
+                                    : conn.minPercent <= 10
+                                    ? Color.Red
+                                    : conn.minPercent <= 35
+                                    ? Color.Yellow
+                                    : Color.Green,
+                              },
+                            },
+                            { text: getProgressBar(conn.minPercent, 10) },
                           ]
                         : undefined
                     }
