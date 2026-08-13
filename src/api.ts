@@ -23,6 +23,7 @@ export interface Connection {
   quotas: QuotaItem[];
   errorMessage?: string;
   minPercent: number | null;
+  nearestReset?: string;
 }
 
 export interface TrackerData {
@@ -232,6 +233,8 @@ export async function fetch9RouterData(baseUrl: string, password: string, provid
       if (prioA !== prioB) return prioA - prioB;
       return a.shortLabel.localeCompare(b.shortLabel);
     });
+    const resetQuotas = quotas.filter((q) => q.reset && q.reset !== "-");
+    const nearestReset = resetQuotas.length > 0 ? resetQuotas[0].reset : undefined;
 
     connections.push({
       id,
@@ -246,6 +249,7 @@ export async function fetch9RouterData(baseUrl: string, password: string, provid
       quotas,
       errorMessage,
       minPercent,
+      nearestReset,
     });
   }
 

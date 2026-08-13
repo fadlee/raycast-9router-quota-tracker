@@ -196,8 +196,8 @@ export default function Command() {
                   .map((q) => `${q.shortLabel}: ${q.remaining}/${q.total}`)
                   .join("  •  ");
 
-                const subtitle = quotaSummaries || (conn.disabled ? "Disabled" : conn.status || "Active");
-
+                const resetInfo = conn.nearestReset ? `↻ ${conn.nearestReset}` : "";
+                const subtitle = [quotaSummaries, resetInfo].filter(Boolean).join("  •  ") || (conn.disabled ? "Disabled" : conn.status || "Active");
                 return (
                   <List.Item
                     key={conn.id}
@@ -220,7 +220,8 @@ export default function Command() {
                                     : Color.Green,
                               },
                             },
-                            { text: getProgressBar(conn.minPercent, 10) },
+                            { text: getProgressBar(conn.minPercent, 8) },
+                            ...(conn.nearestReset ? [{ icon: Icon.Clock, text: conn.nearestReset, tooltip: "Reset Time" }] : []),
                           ]
                         : undefined
                     }
@@ -249,6 +250,9 @@ export default function Command() {
                                 color={conn.disabled || conn.errorStatus ? Color.Red : Color.Green}
                               />
                             </List.Item.Detail.Metadata.TagList>
+                            {conn.nearestReset && (
+                              <List.Item.Detail.Metadata.Label title="Next Reset" text={conn.nearestReset} icon={Icon.Clock} />
+                            )}
                             {lastUpdatedText && (
                               <List.Item.Detail.Metadata.Label title="Last Updated" text={lastUpdatedText} />
                             )}
