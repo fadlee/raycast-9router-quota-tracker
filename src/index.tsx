@@ -196,8 +196,7 @@ export default function Command() {
                   .map((q) => `${q.shortLabel}: ${q.remaining}/${q.total}`)
                   .join("  •  ");
 
-                const resetInfo = conn.nearestReset ? `↻ ${conn.nearestReset}` : "";
-                const subtitle = [quotaSummaries, resetInfo].filter(Boolean).join("  •  ") || (conn.disabled ? "Disabled" : conn.status || "Active");
+                const subtitle = quotaSummaries || (conn.disabled ? "Disabled" : conn.status || "Active");
                 return (
                   <List.Item
                     key={conn.id}
