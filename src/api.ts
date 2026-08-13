@@ -62,19 +62,39 @@ function formatNumber(value: unknown): string {
 }
 function formatReset(value: unknown): string {
   if (!value) return "-";
+  let targetMs: number | null = null;
+
   if (typeof value === "number") {
-    const ts = value > 1e11 ? value : value * 1000;
-    const dt = new Date(ts);
-    return dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-  }
-  const strVal = String(value);
-  if (strVal.includes("T")) {
-    const dt = new Date(strVal);
-    if (!isNaN(dt.getTime())) {
-      return dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+    targetMs = value > 1e11 ? value : value * 1000;
+  } else {
+    const strVal = String(value).trim();
+    if (/^\d+$/.test(strVal)) {
+      const num = Number(strVal);
+      targetMs = num > 1e11 ? num : num * 1000;
+    } else {
+      const parsed = Date.parse(strVal);
+      if (!isNaN(parsed)) targetMs = parsed;
     }
   }
-  return strVal;
+
+  if (!targetMs) return String(value);
+
+  const diffMs = targetMs - Date.now();
+  if (diffMs <= 0) return "now";
+
+  const totalSec = Math.floor(diffMs / 1000);
+  const days = Math.floor(totalSec / 86400);
+  const hours = Math.floor((totalSec % 86400) / 3600);
+  const mins = Math.floor((totalSec % 3600) / 60);
+  const secs = totalSec % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (mins > 0) parts.push(`${mins}m`);
+  if (parts.length === 0) parts.push(`${secs}s`);
+
+  return `in ${parts.join(" ")}`;
 }
 
 function safeFloat(value: unknown): number | null {
