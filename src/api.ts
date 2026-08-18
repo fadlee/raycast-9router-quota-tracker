@@ -6,6 +6,7 @@ export interface QuotaItem {
   total: string;
   remaining: string;
   reset: string;
+  resetAtMs?: number | null;
   extra: string;
   remainingPercent: number | null;
 }
@@ -22,6 +23,7 @@ export interface Connection {
   errorMessage?: string;
   minPercent: number | null;
   nearestReset?: string;
+  nearestResetAtMs?: number | null;
 }
 
 export interface TrackerData {
@@ -58,24 +60,23 @@ function formatNumber(value: unknown): string {
   }
   return String(value);
 }
-function formatReset(value: unknown): string {
-  if (!value) return "-";
-  let targetMs: number | null = null;
-
+export function parseResetMs(value: unknown): number | null {
+  if (!value) return null;
   if (typeof value === "number") {
-    targetMs = value > 1e11 ? value : value * 1000;
-  } else {
-    const strVal = String(value).trim();
-    if (/^\d+$/.test(strVal)) {
-      const num = Number(strVal);
-      targetMs = num > 1e11 ? num : num * 1000;
-    } else {
-      const parsed = Date.parse(strVal);
-      if (!isNaN(parsed)) targetMs = parsed;
-    }
+    return value > 1e11 ? value : value * 1000;
   }
+  const strVal = String(value).trim();
+  if (/^\d+$/.test(strVal)) {
+    const num = Number(strVal);
+    return num > 1e11 ? num : num * 1000;
+  }
+  const parsed = Date.parse(strVal);
+  return isNaN(parsed) ? null : parsed;
+}
 
-  if (!targetMs) return String(value);
+function formatReset(value: unknown): string {
+  const targetMs = parseResetMs(value);
+  if (!targetMs) return value ? String(value) : "-";
 
   const diffMs = targetMs - Date.now();
   if (diffMs <= 0) return "now";
@@ -243,6 +244,7 @@ export async function fetch9RouterData(baseUrl: string, password: string, provid
         total: qVal.unlimited ? "unlimited" : formatNumber(qVal.total),
         remaining: formatNumber(remaining),
         reset: formatReset(qVal.resetAt),
+        resetAtMs: parseResetMs(qVal.resetAt),
         extra,
         remainingPercent: remPct,
       });
@@ -255,8 +257,8 @@ export async function fetch9RouterData(baseUrl: string, password: string, provid
       if (prioA !== prioB) return prioA - prioB;
       return a.shortLabel.localeCompare(b.shortLabel);
     });
-    const resetQuotas = quotas.filter((q) => q.reset && q.reset !== "-");
-    const nearestReset = resetQuotas.length > 0 ? resetQuotas[0].reset : undefined;
+    const resetQuotas = quotas.filter((q) => q.resetAtMs !== null && q.resetAtMs !== undefined);
+    const nearestResetQuota = resetQuotas.length > 0 ? resetQuotas.reduce((earliest, q) => (q.resetAtMs! < earliest.resetAtMs! ? q : earliest)) : undefined;
 
     connections.push({
       id,
@@ -269,7 +271,8 @@ export async function fetch9RouterData(baseUrl: string, password: string, provid
       quotas,
       errorMessage,
       minPercent,
-      nearestReset,
+      nearestReset: nearestResetQuota?.reset,
+      nearestResetAtMs: nearestResetQuota?.resetAtMs ?? null,
     });
   }
 

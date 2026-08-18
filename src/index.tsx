@@ -25,6 +25,11 @@ function formatLastUpdated(timestamp: number | null): string {
   return `Updated ${Math.floor(minutes / 60)}h ago`;
 }
 
+function formatResetTime(ms: number | null | undefined): string {
+  if (!ms) return "-";
+  return new Date(ms).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 function sectionSubtitle(state: InstanceQuotaState): string {
   const accountCount = `${state.connections.length} account${state.connections.length === 1 ? "" : "s"}`;
   return state.refreshError
@@ -136,7 +141,7 @@ export default function Command() {
                     { tag: { value: status, color: connection.isActive ? Color.Green : Color.SecondaryText } },
                     ...(connection.nearestReset ? [{ icon: Icon.Clock, text: connection.nearestReset, tooltip: "Reset Time" }] : []),
                   ]}
-                  detail={<List.Item.Detail markdown={renderQuotaDetails({ quotas: connection.quotas, errorMessage: connection.errorMessage })} metadata={<List.Item.Detail.Metadata><List.Item.Detail.Metadata.Label title="Instance" text={state.instance.name} /><List.Item.Detail.Metadata.Label title="Account ID" text={connection.id} /><List.Item.Detail.Metadata.Label title="Provider" text={connection.provider.toUpperCase()} /><List.Item.Detail.Metadata.Label title="Last Updated" text={formatLastUpdated(state.timestamp)} /></List.Item.Detail.Metadata>} />}
+                  detail={<List.Item.Detail markdown={renderQuotaDetails({ quotas: connection.quotas, errorMessage: connection.errorMessage })} metadata={<List.Item.Detail.Metadata><List.Item.Detail.Metadata.Label title="Instance" text={state.instance.name} /><List.Item.Detail.Metadata.Label title="Account ID" text={connection.id} /><List.Item.Detail.Metadata.Label title="Provider" text={connection.provider.toUpperCase()} /><List.Item.Detail.Metadata.Label title="Reset Time" text={formatResetTime(connection.nearestResetAtMs)} /><List.Item.Detail.Metadata.Label title="Last Updated" text={formatLastUpdated(state.timestamp)} /></List.Item.Detail.Metadata>} />}
                   actions={<ActionPanel><Action title={isShowingDetail ? "Hide Details" : "Show Details"} icon={Icon.Sidebar} onAction={() => setIsShowingDetail((value) => !value)} /><Action title="Refresh This Instance" icon={Icon.ArrowClockwise} onAction={() => refreshOne(state.instance)} /><Action title="Refresh All Instances" icon={Icon.ArrowClockwise} shortcut={{ modifiers: ["cmd"], key: "r" }} onAction={() => refreshAll(true)} /><Action title="Open 9Router Dashboard" icon={Icon.Globe} shortcut={{ modifiers: ["cmd"], key: "o" }} onAction={() => open(state.instance.baseUrl)} /><Action.Push title="Manage Instances" icon={Icon.Gear} shortcut={{ modifiers: ["cmd", "shift"], key: "," }} target={<InstanceManager onChanged={refreshAfterConfiguration} />} /></ActionPanel>}
                 />
               );
